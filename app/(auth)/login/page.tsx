@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/client/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LooseNotionLogo } from "@/components/ui/LooseNotionLogo";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -85,11 +86,12 @@ function LoginForm() {
   return (
     <div className="rounded-2xl border border-white/10 bg-[#161619]/90 p-7 shadow-2xl backdrop-blur-xl">
       <div className="flex items-center gap-2.5 mb-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-white/5 font-mono text-xs font-bold text-white shadow-sm tracking-tight">
-          LN
+        <div className="flex h-7 w-7 items-center justify-center rounded-md overflow-hidden shadow-sm">
+          <LooseNotionLogo className="h-7 w-7" />
         </div>
         <h1 className="text-xl font-bold tracking-tight text-white">LooseNotion</h1>
       </div>
+
       <p className="mb-6 text-xs text-zinc-400">Welcome back to your workspace.</p>
 
       {/* Google Sign In Option */}
@@ -170,8 +172,9 @@ function LoginForm() {
       </form>
 
       <p className="mt-5 text-center text-xs text-zinc-500">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-zinc-300 hover:text-white underline underline-offset-4 font-medium transition-colors">
+
           Sign up
         </Link>
       </p>

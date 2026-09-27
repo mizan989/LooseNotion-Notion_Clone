@@ -28,9 +28,10 @@ export function BoardView({
   if (!groupColumn) {
     return (
       <div className="p-6 text-sm text-muted-foreground">
-        Add a "Select" column (e.g. Status) to use the board view.
+        Add a &quot;Select&quot; column (e.g. Status) to use the board view.
       </div>
     );
+
   }
 
   const options = groupColumn.options ?? [];

@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { watermelonSpring } from "@/components/ui/motion";
+import { LooseNotionLogo } from "@/components/ui/LooseNotionLogo";
 
 export interface LegalSection {
   id: string;
@@ -147,13 +148,14 @@ export function LegalPageLayout({
             <div className="h-4 w-px bg-white/10 hidden sm:block" />
 
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="flex h-6 w-6 items-center justify-center rounded border border-white/15 bg-white/5 font-mono text-[10px] font-bold text-white tracking-tight">
-                LN
+              <div className="flex h-6 w-6 items-center justify-center rounded overflow-hidden">
+                <LooseNotionLogo className="h-6 w-6" />
               </div>
               <span className="text-sm font-semibold tracking-tight text-white group-hover:text-zinc-200 transition-colors">
                 LooseNotion
               </span>
             </Link>
+
           </div>
 
           {/* Legal Tab Switcher */}
@@ -425,13 +427,14 @@ export function LegalPageLayout({
         <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/5 text-xs text-zinc-400">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded border border-white/15 bg-white/5 font-mono text-[10px] font-bold text-white tracking-tight">
-                LN
+              <div className="flex h-6 w-6 items-center justify-center rounded overflow-hidden">
+                <LooseNotionLogo className="h-6 w-6" />
               </div>
               <span className="font-semibold text-white">LooseNotion</span>
               <span className="text-zinc-600">•</span>
               <span className="text-zinc-400">Connected workspace for docs & databases</span>
             </div>
+
 
             <div className="flex items-center gap-4">
               {SOCIAL_LINKS.map((social) => (

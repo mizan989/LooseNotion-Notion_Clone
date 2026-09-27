@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/client/supabase";
 import { Button } from "@/components/ui/button";
+import { LooseNotionLogo } from "@/components/ui/LooseNotionLogo";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -69,11 +70,12 @@ export default function SignupPage() {
 
         <div className="rounded-2xl border border-white/10 bg-[#161619]/90 p-7 shadow-2xl backdrop-blur-xl">
           <div className="flex items-center gap-2.5 mb-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-white/5 font-mono text-xs font-bold text-white shadow-sm tracking-tight">
-              LN
+            <div className="flex h-7 w-7 items-center justify-center rounded-md overflow-hidden shadow-sm">
+              <LooseNotionLogo className="h-7 w-7" />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-white">Create workspace</h1>
           </div>
+
           <p className="mb-5 text-xs text-zinc-400">Get started with your free LooseNotion workspace.</p>
 
           {/* Maintenance Notice Banner */}

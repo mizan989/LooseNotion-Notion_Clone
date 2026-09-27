@@ -33,8 +33,9 @@ async function EditorSection({ pageId }: { pageId: string }) {
 async function DatabaseSection({ pageId }: { pageId: string }) {
   const database = await getDatabaseByPageId(pageId);
   if (!database) {
-    return <p className="p-8 text-sm text-muted-foreground">This database hasn't been set up yet.</p>;
+    return <p className="p-8 text-sm text-muted-foreground">This database hasn&apos;t been set up yet.</p>;
   }
+
   const [columns, rows] = await Promise.all([
     getDatabaseColumns(database.id),
     getDatabaseRows(database.id),

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { User } from "@/types/user";
 import { Button } from "@/components/ui/button";
+import { LooseNotionLogo } from "@/components/ui/LooseNotionLogo";
 import {
   FadeIn,
   FadeInStagger,
@@ -79,9 +80,9 @@ export function LandingView({ user }: { user: User | null }) {
             <motion.div
               whileHover={{ rotate: 8, scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/15 bg-white/5 font-mono text-xs font-bold text-white shadow-sm tracking-tight"
+              className="flex h-7 w-7 items-center justify-center rounded-md overflow-hidden shadow-sm"
             >
-              LN
+              <LooseNotionLogo className="h-7 w-7" />
             </motion.div>
             <span className="text-base font-semibold tracking-tight text-white group-hover:text-zinc-200 transition-colors">
               LooseNotion
@@ -491,8 +492,8 @@ export function LandingView({ user }: { user: User | null }) {
         <div className="container mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-white/5 text-xs text-zinc-500">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-5 w-5 items-center justify-center rounded border border-white/15 bg-white/5 font-mono text-[9px] font-bold text-white tracking-tight">
-                LN
+              <div className="flex h-5 w-5 items-center justify-center rounded overflow-hidden">
+                <LooseNotionLogo className="h-5 w-5" />
               </div>
               <span className="font-semibold text-zinc-300">LooseNotion</span>
               <span className="text-zinc-700 hidden sm:inline">•</span>
