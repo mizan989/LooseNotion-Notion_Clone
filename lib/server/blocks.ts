@@ -30,16 +30,10 @@ export async function savePageContent(pageId: string, content: unknown) {
 /** Naive full-text search across a workspace's page content, used by the search dialog. */
 export async function searchPageContent(workspaceId: string, query: string) {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("blocks")
-    .select("page_id, content, pages!inner(id, title, workspace_id, is_deleted)")
-    .eq("pages.workspace_id", workspaceId)
-    .eq("pages.is_deleted", false);
-
+  const { data, error } = await supabase.rpc("search_workspace_pages", {
+    p_workspace_id: workspaceId,
+    p_query: query.trim().slice(0, 100),
+  });
   if (error) throw error;
-
-  const needle = query.toLowerCase();
-  return (data ?? [])
-    .filter((row: any) => JSON.stringify(row.content).toLowerCase().includes(needle))
-    .map((row: any) => ({ pageId: row.page_id, title: row.pages.title }));
+  return (data ?? []).map((row: any) => ({ pageId: row.page_id, title: row.title, icon: row.icon, excerpt: row.excerpt }));
 }

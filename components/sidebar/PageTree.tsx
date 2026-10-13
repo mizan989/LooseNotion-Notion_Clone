@@ -48,6 +48,8 @@ function SortableRow({
   const unmarkPageDeleted = useSidebarStore((s) => s.unmarkPageDeleted);
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(node.title);
+  const [pageActionError, setPageActionError] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: node.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
@@ -71,18 +73,21 @@ function SortableRow({
     // 1. Optimistic removal (0ms perceived latency)
     markPageDeleted(node.id);
 
-    // 2. If the user is currently on this page, redirect immediately
-    if (activePageId === node.id) {
-      router.push("/workspace");
-    }
-
-    // 3. Perform server deletion in background
     try {
       await deletePage(node.id);
-    } catch (err) {
-      console.error("Failed to delete page:", err);
+      if (activePageId === node.id) router.push("/workspace");
+    } catch {
       unmarkPageDeleted(node.id);
+      setPageActionError(true);
     }
+  }
+
+  async function handleDuplicate() {
+    setDuplicating(true);
+    setPageActionError(false);
+    try { await duplicatePage(node.id); }
+    catch { setPageActionError(true); }
+    finally { setDuplicating(false); }
   }
 
   return (
@@ -146,7 +151,7 @@ function SortableRow({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setRenaming(true)}>Rename</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => duplicatePage(node.id)}>Duplicate</DropdownMenuItem>
+              <DropdownMenuItem disabled={duplicating} onClick={() => void handleDuplicate()}>{duplicating ? "Duplicating..." : "Duplicate"}</DropdownMenuItem>
               <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                 Delete
               </DropdownMenuItem>
@@ -154,6 +159,7 @@ function SortableRow({
           </DropdownMenu>
         </div>
       </div>
+      {pageActionError && <p role="alert" className="px-3 py-1 text-xs text-destructive">Could not complete page action. Please try again.</p>}
 
       {expanded && node.children.length > 0 && (
         <PageTree

@@ -1,17 +1,17 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Star, PanelLeftClose, PanelLeft, Database, Loader2 } from "lucide-react";
+import { Search, Plus, Star, PanelLeftClose, PanelLeft, Database, Loader2, Trash2, Clock3 } from "lucide-react";
 import { cn } from "@/lib/client/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { WorkspaceSwitcher } from "@/components/sidebar/WorkspaceSwitcher";
 import { PageTree } from "@/components/sidebar/PageTree";
 import { SearchDialog } from "@/components/search/SearchDialog";
 import { ExportMenu } from "@/components/sidebar/ExportMenu";
-import { createPage } from "@/actions/pages";
+import { createPage, getTrashPages, restorePage } from "@/actions/pages";
 import type { Page, PageTreeNode } from "@/types/page";
 
 function filterTree(nodes: PageTreeNode[], deletedIds: Set<string>): PageTreeNode[] {
@@ -45,15 +45,42 @@ export function Sidebar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [creatingPage, setCreatingPage] = useState(false);
   const [creatingDb, setCreatingDb] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [trashOpen, setTrashOpen] = useState(false);
+  const [trashLoading, setTrashLoading] = useState(false);
+  const [trashPages, setTrashPages] = useState<{ id: string; title: string; updated_at: string }[]>([]);
+  const [trashError, setTrashError] = useState<string | null>(null);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
 
   const visibleFavorites = favorites.filter((p) => !deletedPageIds.has(p.id));
   const visibleTree = filterTree(tree, deletedPageIds);
+  const recentStorageKey = `loosenotion:recent:${workspaceId}`;
+  const allPages = flattenTree(visibleTree);
+  useEffect(() => {
+    let stored: string[] = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem(recentStorageKey) ?? "[]");
+      if (Array.isArray(parsed)) stored = parsed.filter((id): id is string => typeof id === "string").slice(0, 8);
+    } catch { localStorage.removeItem(recentStorageKey); }
+    const next = activePageId && allPages.some((page) => page.id === activePageId)
+      ? [activePageId, ...stored.filter((id) => id !== activePageId)].slice(0, 8)
+      : stored.filter((id) => allPages.some((page) => page.id === id));
+    setRecentIds(next);
+    try { localStorage.setItem(recentStorageKey, JSON.stringify(next)); } catch { /* local storage may be unavailable */ }
+  // `allPages` is derived from the server tree; state updates must not re-run this effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePageId, tree, deletedPageIds, recentStorageKey]);
+
+  const recentPages = recentIds.map((id) => allPages.find((page) => page.id === id)).filter((page): page is Page => Boolean(page));
 
   async function handleNewPage() {
     try {
+      setCreateError(null);
       setCreatingPage(true);
       const page = await createPage({ workspaceId, title: "Untitled" });
       router.push(`/workspace/${page.id}`);
+    } catch {
+      setCreateError("Could not create page. Please try again.");
     } finally {
       setCreatingPage(false);
     }
@@ -61,11 +88,35 @@ export function Sidebar({
 
   async function handleNewDatabase() {
     try {
+      setCreateError(null);
       setCreatingDb(true);
       const page = await createPage({ workspaceId, title: "Untitled Database", isDatabase: true });
       router.push(`/workspace/${page.id}`);
+    } catch {
+      setCreateError("Could not create database. Please try again.");
     } finally {
       setCreatingDb(false);
+    }
+  }
+
+  async function openTrash() {
+    setTrashOpen((open) => !open);
+    if (trashOpen) return;
+    setTrashLoading(true);
+    try { setTrashPages(await getTrashPages(workspaceId)); }
+    catch { setTrashError("Could not load trash. Please try again."); }
+    finally { setTrashLoading(false); }
+  }
+
+  async function handleRestore(pageId: string) {
+    try {
+      setTrashError(null);
+      await restorePage(pageId);
+      setTrashPages((items) => items.filter((item) => item.id !== pageId));
+      router.refresh();
+    } catch (error) {
+      console.error("Could not restore page", error);
+      setTrashError("Could not restore page. Please try again.");
     }
   }
 
@@ -143,6 +194,18 @@ export function Sidebar({
         </div>
       )}
 
+      {recentPages.length > 0 && (
+        <div className="mt-3 px-2">
+          <div className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+            <Clock3 className="h-3 w-3" /> Recent
+            <button className="ml-auto normal-case font-normal tracking-normal hover:text-zinc-300" onClick={() => { setRecentIds([]); localStorage.removeItem(recentStorageKey); }}>Clear</button>
+          </div>
+          <div className="space-y-0.5 mt-0.5">
+            {recentPages.map((page) => <Link key={page.id} href={`/workspace/${page.id}`} className="flex items-center gap-2 truncate rounded-md px-2 py-1 text-xs text-zinc-400 hover:bg-white/5 hover:text-white"><span>{page.icon ?? "📄"}</span>{page.title || "Untitled"}</Link>)}
+          </div>
+        </div>
+      )}
+
       <div className="mt-3 flex flex-1 flex-col overflow-y-auto px-2">
         <div className="flex items-center justify-between px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
           <span>Workspace</span>
@@ -169,7 +232,24 @@ export function Sidebar({
             </motion.button>
           </div>
         </div>
+        {createError && <p role="alert" className="px-2 py-1 text-xs text-destructive">{createError}</p>}
         <PageTree nodes={visibleTree} activePageId={activePageId} workspaceId={workspaceId} />
+        <div className="mt-3 border-t border-white/10 pt-2">
+          <button onClick={openTrash} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-zinc-400 hover:bg-white/5 hover:text-white">
+            <Trash2 className="h-3.5 w-3.5" /> Trash
+          </button>
+          {trashOpen && (
+            <div className="space-y-1 px-2 py-1">
+              {trashError && <p role="alert" className="text-xs text-destructive">{trashError}</p>}
+              {trashLoading ? <p className="text-xs text-zinc-500">Loading trash...</p> : trashPages.length === 0 ? <p className="text-xs text-zinc-500">Trash is empty.</p> : trashPages.map((page) => (
+                <div key={page.id} className="flex items-center gap-2 text-xs text-zinc-400">
+                  <span className="flex-1 truncate">{page.title || "Untitled"}</span>
+                  <button className="underline hover:text-white" onClick={() => void handleRestore(page.id)}>Restore</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} pages={flattenTree(visibleTree)} />

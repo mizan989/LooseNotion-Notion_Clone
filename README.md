@@ -297,7 +297,7 @@ loosenotion/
 │
 ├── stores/                    # Zustand client state stores (sidebar, editor, database)
 ├── supabase/                  # PostgreSQL migrations and seed scripts
-│   └── migrations/            # SQL migration scripts (0001_init.sql)
+│   └── migrations/            # SQL migration scripts (0001_init.sql and later migrations)
 │
 └── public/                    # Static assets (optimized logo.png, logo.svg, favicons)
 ```
@@ -321,6 +321,10 @@ vercel --prod
 ```
 
 Configure your environment variables in the Vercel Dashboard under **Project Settings ➔ Environment Variables**.
+
+### Supabase migrations
+
+Apply the migrations in `supabase/migrations` to the Supabase project before deploying. The page-search migration adds an indexed text projection to saved editor documents; existing page content is backfilled by the migration. For the Supabase CLI, run `supabase db push` from the repository root after linking the intended project. Otherwise, run the migration SQL in order in the Supabase SQL Editor. Migrations `0002_page_search.sql`, `0003_page_search_harden.sql`, and `0004_harden_auth_helpers.sql` were applied to the connected `LooseNotion` Supabase project on 2026-10-13; use migration history to avoid replaying them manually.
 
 ---
 

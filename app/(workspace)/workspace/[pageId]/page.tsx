@@ -6,8 +6,10 @@ import { PageHeader } from "@/components/page/PageHeader";
 import { PageCover } from "@/components/page/PageCover";
 import { Editor } from "@/components/editor/Editor";
 import { Database } from "@/components/database/Database";
+import { requireUser } from "@/lib/server/auth";
 
 export default async function PageDetail({ params }: { params: { pageId: string } }) {
+  const user = await requireUser();
   const page = await getPage(params.pageId);
   if (!page || page.isDeleted) notFound();
 
@@ -19,15 +21,15 @@ export default async function PageDetail({ params }: { params: { pageId: string 
       {page.isDatabase ? (
         <DatabaseSection pageId={page.id} />
       ) : (
-        <EditorSection pageId={page.id} />
+        <EditorSection key={page.id} pageId={page.id} userId={user.id} />
       )}
     </div>
   );
 }
 
-async function EditorSection({ pageId }: { pageId: string }) {
+async function EditorSection({ pageId, userId }: { pageId: string; userId: string }) {
   const content = await getPageContent(pageId);
-  return <Editor pageId={pageId} initialContent={content} />;
+  return <Editor key={pageId} pageId={pageId} userId={userId} initialContent={content} />;
 }
 
 async function DatabaseSection({ pageId }: { pageId: string }) {

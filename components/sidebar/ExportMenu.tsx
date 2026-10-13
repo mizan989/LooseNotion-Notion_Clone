@@ -12,9 +12,11 @@ import { exportWorkspace } from "@/actions/workspace";
 
 export function ExportMenu({ workspaceId }: { workspaceId: string }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleExport(format: "markdown" | "json") {
     setLoading(true);
+    setError(null);
     try {
       const content = await exportWorkspace(workspaceId, format);
       const blob = new Blob([content], {
@@ -25,7 +27,9 @@ export function ExportMenu({ workspaceId }: { workspaceId: string }) {
       a.href = url;
       a.download = format === "json" ? "loosenotion-export.json" : "loosenotion-export.md";
       a.click();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setError("Export failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -45,6 +49,7 @@ export function ExportMenu({ workspaceId }: { workspaceId: string }) {
         <DropdownMenuItem onClick={() => handleExport("markdown")}>Export as Markdown</DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleExport("json")}>Export as JSON</DropdownMenuItem>
       </DropdownMenuContent>
+      {error && <span role="alert" className="ml-2 text-xs text-destructive">{error}</span>}
     </DropdownMenu>
   );
 }

@@ -5,8 +5,8 @@ import { Bold, Italic, Strikethrough, Code2 } from "lucide-react";
 import { cn } from "@/lib/client/utils";
 import { useEditorStore } from "@/stores/editor-store";
 
-export function EditorToolbar({ editor }: { editor: Editor | null }) {
-  const saveStatus = useEditorStore((s) => s.saveStatus);
+export function EditorToolbar({ editor, onRetry }: { editor: Editor | null; onRetry: () => void }) {
+  const saveStatus = useEditorStore((s) => s.saveStatusPageId === s.activePageId ? s.saveStatus : "idle");
 
   if (!editor) return null;
 
@@ -37,6 +37,7 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
       <span className="text-xs text-muted-foreground">
         {saveStatus === "saving" && "Saving..."}
         {saveStatus === "saved" && "✓ Saved"}
+        {saveStatus === "error" && <><span role="alert">Save failed.</span> <button className="underline" onClick={onRetry}>Retry</button></>}
       </span>
     </div>
   );
