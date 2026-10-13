@@ -24,7 +24,7 @@ function mapRow(row: any): DatabaseRow {
 }
 
 export async function getDatabaseByPageId(pageId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("databases")
     .select("*")
@@ -35,7 +35,7 @@ export async function getDatabaseByPageId(pageId: string) {
 }
 
 export async function getDatabaseColumns(databaseId: string): Promise<DatabaseColumn[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("database_columns")
     .select("*")
@@ -46,7 +46,7 @@ export async function getDatabaseColumns(databaseId: string): Promise<DatabaseCo
 }
 
 export async function getDatabaseRows(databaseId: string): Promise<DatabaseRow[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("database_rows")
     .select("*")

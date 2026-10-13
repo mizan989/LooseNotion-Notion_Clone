@@ -14,7 +14,7 @@ export async function addDatabaseColumn(databaseId: string, name: string, type: 
   await requireUser(); safeId(databaseId);
   const cleanName = z.string().trim().min(1).max(100).parse(name);
   const cleanType = columnType.parse(type);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { count } = await supabase
     .from("database_columns")
     .select("id", { count: "exact", head: true })
@@ -37,7 +37,7 @@ export async function updateDatabaseColumn(
   await requireUser(); safeId(columnId);
   const cleanUpdates = z.object({ name: z.string().trim().min(1).max(100).optional(), options: z.array(z.object({ id: z.string().min(1).max(100), label: z.string().min(1).max(100), color: z.string().max(32) })).max(100).optional() }).strict().parse(updates);
   if (Object.keys(cleanUpdates).length === 0) throw new Error("No valid column changes provided.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("database_columns")
     .update(cleanUpdates)
@@ -49,7 +49,7 @@ export async function updateDatabaseColumn(
 
 export async function deleteDatabaseColumn(columnId: string) {
   await requireUser(); safeId(columnId);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("database_columns").delete().eq("id", columnId).select("id").maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("Column not found or access denied.");
@@ -58,7 +58,7 @@ export async function deleteDatabaseColumn(columnId: string) {
 
 export async function addDatabaseRow(databaseId: string) {
   await requireUser(); safeId(databaseId);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("database_rows")
     .insert({ database_id: databaseId, position: Date.now(), values: {} })
@@ -76,7 +76,7 @@ export async function updateDatabaseRow(
   await requireUser(); safeId(rowId);
   const validatedValues = z.record(z.string().uuid(), z.union([z.string().max(10000), z.number().finite(), z.boolean(), z.null()])).parse(values);
   if (Object.keys(validatedValues).length === 0) throw new Error("No cell changes provided.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: current, error: readError } = await supabase
     .from("database_rows")
     .select("values, database_id")
@@ -108,7 +108,7 @@ export async function updateDatabaseRow(
 
 export async function deleteDatabaseRow(rowId: string) {
   await requireUser(); safeId(rowId);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("database_rows").delete().eq("id", rowId).select("id").maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("Row not found or access denied.");

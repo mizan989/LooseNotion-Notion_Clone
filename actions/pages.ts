@@ -10,14 +10,14 @@ const pageTitle = z.string().trim().min(1).max(200);
 
 async function assertWorkspaceAccess(workspaceId: string) {
   if (!uuid.safeParse(workspaceId).success) throw new Error("Invalid workspace.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("workspaces").select("id").eq("id", workspaceId).maybeSingle();
   if (error || !data) throw new Error("Workspace not found or access denied.");
 }
 
 async function getAccessiblePage(pageId: string) {
   if (!uuid.safeParse(pageId).success) throw new Error("Invalid page.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("pages").select("*").eq("id", pageId).maybeSingle();
   if (error || !data) throw new Error("Page not found or access denied.");
   return { supabase, page: data };
@@ -36,7 +36,7 @@ export async function createPage(input: {
     const { page: parent } = await getAccessiblePage(input.parentId);
     if (parent.workspace_id !== input.workspaceId || parent.is_deleted) throw new Error("Invalid parent page.");
   }
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: page, error } = await supabase
     .from("pages")
@@ -109,7 +109,7 @@ export async function renamePage(pageId: string, title: string) {
   await requireUser();
   if (!uuid.safeParse(pageId).success) throw new Error("Invalid page.");
   const validatedTitle = pageTitle.parse(title);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("pages")
     .update({ title: validatedTitle, updated_at: new Date().toISOString() })
@@ -123,7 +123,7 @@ export async function setPageIcon(pageId: string, icon: string | null) {
   await requireUser();
   if (!uuid.safeParse(pageId).success) throw new Error("Invalid page.");
   if (icon !== null && icon.length > 32) throw new Error("Invalid page icon.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("pages").update({ icon }).eq("id", pageId).select("id").maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("Page not found or access denied.");
@@ -134,7 +134,7 @@ export async function setPageCover(pageId: string, cover: string | null) {
   await requireUser();
   if (!uuid.safeParse(pageId).success) throw new Error("Invalid page.");
   if (cover !== null && (cover.length > 2048 || !/^https:\/\//i.test(cover))) throw new Error("Invalid page cover URL.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("pages").update({ cover }).eq("id", pageId).select("id").maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("Page not found or access denied.");
@@ -144,7 +144,7 @@ export async function setPageCover(pageId: string, cover: string | null) {
 export async function movePage(pageId: string, parentId: string | null, position: number) {
   await requireUser();
   if (!Number.isFinite(position) || Math.abs(position) > 1e12) throw new Error("Invalid page position.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: page, error: pageError } = await supabase.from("pages").select("id, workspace_id, is_deleted").eq("id", pageId).maybeSingle();
   if (pageError || !page || page.is_deleted) throw new Error("Page not found or access denied.");
   if (parentId) {
@@ -171,7 +171,7 @@ export async function movePage(pageId: string, parentId: string | null, position
 
 export async function deletePage(pageId: string) {
   await requireUser();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: page, error: pageError } = await supabase.from("pages").select("id, workspace_id").eq("id", pageId).maybeSingle();
   if (pageError || !page) throw new Error("Page not found or access denied.");
 
@@ -214,7 +214,7 @@ export async function deletePage(pageId: string) {
 export async function getTrashPages(workspaceId: string) {
   await requireUser();
   await assertWorkspaceAccess(workspaceId);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("pages").select("id, title, parent_id, updated_at").eq("workspace_id", workspaceId).eq("is_deleted", true).order("updated_at", { ascending: false }).limit(100);
   if (error) throw error;
   return data ?? [];
@@ -241,7 +241,7 @@ export async function restorePage(pageId: string) {
 
 export async function duplicatePage(pageId: string) {
   const user = await requireUser();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: original, error } = await supabase
     .from("pages")
     .select("*")
@@ -353,7 +353,7 @@ export async function duplicatePage(pageId: string) {
 export async function toggleFavorite(pageId: string) {
   const user = await requireUser();
   if (!uuid.safeParse(pageId).success) throw new Error("Invalid page.");
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: page, error: pageError } = await supabase.from("pages").select("id").eq("id", pageId).eq("is_deleted", false).maybeSingle();
   if (pageError || !page) throw new Error("Page not found or access denied.");

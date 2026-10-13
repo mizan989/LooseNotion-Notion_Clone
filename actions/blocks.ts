@@ -10,7 +10,7 @@ export async function savePageBlocks(pageId: string, content: unknown) {
   if (!z.string().uuid().safeParse(pageId).success) throw new Error("Invalid page.");
   const validated = z.object({ type: z.literal("doc"), content: z.array(z.unknown()).max(10000).optional() }).passthrough().safeParse(content);
   if (!validated.success || JSON.stringify(content).length > 1_000_000) throw new Error("Invalid page content.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: page, error: pageError } = await supabase.from("pages").select("id").eq("id", pageId).eq("is_deleted", false).maybeSingle();
   if (pageError || !page) throw new Error("Page not found or access denied.");
   const { error } = await supabase

@@ -8,9 +8,14 @@ import { Editor } from "@/components/editor/Editor";
 import { Database } from "@/components/database/Database";
 import { requireUser } from "@/lib/server/auth";
 
-export default async function PageDetail({ params }: { params: { pageId: string } }) {
+export default async function PageDetail({
+  params,
+}: {
+  params: Promise<{ pageId: string }>;
+}) {
+  const { pageId } = await params;
   const user = await requireUser();
-  const page = await getPage(params.pageId);
+  const page = await getPage(pageId);
   if (!page || page.isDeleted) notFound();
 
   return (

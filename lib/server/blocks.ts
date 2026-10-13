@@ -5,7 +5,7 @@ const EMPTY_DOC = { type: "doc", content: [{ type: "paragraph" }] };
 
 /** Returns the Tiptap JSON document for a page, creating an empty one if needed. */
 export async function getPageContent(pageId: string): Promise<unknown> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("blocks")
     .select("content")
@@ -17,7 +17,7 @@ export async function getPageContent(pageId: string): Promise<unknown> {
 }
 
 export async function savePageContent(pageId: string, content: unknown) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase
     .from("blocks")
     .upsert(
@@ -29,7 +29,7 @@ export async function savePageContent(pageId: string, content: unknown) {
 
 /** Naive full-text search across a workspace's page content, used by the search dialog. */
 export async function searchPageContent(workspaceId: string, query: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.rpc("search_workspace_pages", {
     p_workspace_id: workspaceId,
     p_query: query.trim().slice(0, 100),

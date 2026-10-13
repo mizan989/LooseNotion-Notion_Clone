@@ -5,14 +5,14 @@ import { createClient } from "@/lib/server/supabase";
 import type { User } from "@/types/user";
 
 export async function getCurrentUser(): Promise<User | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const hasAuthCookie = cookieStore
     .getAll()
     .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
 
   if (!hasAuthCookie) return null;
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

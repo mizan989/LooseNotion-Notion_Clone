@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/server/auth";
 export async function renameWorkspace(workspaceId: string, name: string) {
   await requireUser();
   if (!/^[0-9a-f-]{36}$/i.test(workspaceId) || !name.trim() || name.trim().length > 100) throw new Error("Invalid workspace details.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("workspaces")
     .update({ name })
@@ -20,7 +20,7 @@ export async function renameWorkspace(workspaceId: string, name: string) {
 export async function exportWorkspace(workspaceId: string, format: "markdown" | "json") {
   await requireUser();
   if (!/^[0-9a-f-]{36}$/i.test(workspaceId)) throw new Error("Invalid workspace.");
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: pages, error } = await supabase
     .from("pages")
     .select("id, title, parent_id, position, icon, cover, is_database, created_at, updated_at")

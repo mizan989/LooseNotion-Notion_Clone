@@ -21,7 +21,7 @@ function mapPage(row: any): Page {
 }
 
 export async function getWorkspacePages(workspaceId: string): Promise<Page[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("pages")
     .select("*")
@@ -50,7 +50,7 @@ export function buildPageTree(pages: Page[]): PageTreeNode[] {
 }
 
 export async function getPage(pageId: string): Promise<Page | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("pages")
     .select("*")
@@ -62,7 +62,7 @@ export async function getPage(pageId: string): Promise<Page | null> {
 }
 
 export async function getFavoritePages(userId: string): Promise<Page[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("favorites")
     .select("pages(*)")
